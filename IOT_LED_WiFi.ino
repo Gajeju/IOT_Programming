@@ -5,8 +5,8 @@
   Arduino
 */
 #define LED   2
-#define TAG_ID  "LED"
-
+#define TAG_ID    "LED"
+#define TAG_ID_2  "state"
 /*
   WIFI Shield
 */
@@ -19,9 +19,9 @@
 */
 IoTMakers g_im;
 
-#define deviceID    "tmdghkD1572589463724"            //디바이스 아이디
-#define authnRqtNo  "6yluq9l91"            //디바이스 패스워드
-#define extrSysID   "OPEN_TCP_001PTL001_1000007977"   //게이트웨이 연결 ID
+#define deviceID    "qwert6D1572675402636"            //디바이스 아이디
+#define authnRqtNo  "73y0ayefb"            //디바이스 패스워드
+#define extrSysID   "OPEN_TCP_001PTL001_1000007985"   //게이트웨이 연결 ID
 
 
 //IoT Makers 접속을 초기화 하는 함수
@@ -61,7 +61,6 @@ void init_iotmakers()
   }
 }
 
-
 void setup()
 {
   Serial.begin(9600);
@@ -83,6 +82,13 @@ void loop()
     init_iotmakers();
   }
 
+  // 센서 값을 읽어오는 시간 설정
+  if ( ( millis() - tick) > 1000 )
+  {
+    send_LED();
+    tick = millis();
+  }
+
   // IoTMakers 플랫폼 수신처리 및 keepalive 송신
   g_im.loop();
 }
@@ -91,19 +97,32 @@ void loop()
 // 플랫폼에 보내는 내용
 void mycb_strdata_handler(char *tagid, char *strval)
 {
-  if ( strcmp(TAG_ID, tagid) == 0)
+  if ( strcmp(TAG_ID, tagid) == 0 && strcmp(strval, "on") == 0
+       || strcmp(TAG_ID, tagid) == 0 && strcmp(strval, "ON") == 0)
   {
-    if ( strcmp(strval, "ON") == 0 || strcmp(strval, "on") == 0 )
-    {
-      digitalWrite(LED, LOW);
-      Serial.println(F("LED ON"));
-    }
-
-
-    else if ( strcmp(strval, "OFF") == 0 || strcmp(strval, "off") == 0 )
-    {
-      digitalWrite(LED, HIGH);
-      Serial.println(F("LED OFF"));
-    }
+    digitalWrite(LED, LOW);
+    Serial.println(F("LED ON"));
   }
+
+  else if ( strcmp(TAG_ID, tagid) == 0 && strcmp(strval, "off") == 0
+            || strcmp(TAG_ID, tagid) == 0 && strcmp(strval, "OFF") == 0)
+  {
+    digitalWrite(LED, HIGH);
+    Serial.println(F("LED OFF"));
+  }
+}
+
+int send_LED()
+{
+  // 센서 값을 읽어온다.
+  char* led_state = digitalRead(LED) ? "off" : "on";
+  
+  Serial.print(F("LED : "));
+  Serial.println(led_state);
+
+  if ( g_im.send_strdata(TAG_ID_2, led_state) < 0 ) {
+    Serial.println(F("fail"));
+    return -1;
+  }
+  return 0;
 }

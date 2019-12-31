@@ -2,6 +2,7 @@
 #include <IoTStarterKit_WiFi.h>
 
 
+
 /*
   Arduino
 */
@@ -93,7 +94,6 @@ void loop()
   // IoTMakers 플랫폼 수신처리 및 keepalive 송신
   g_im.loop();
 }
-
 
 // 플랫폼에 보내는 내용
 void mycb_strdata_handler(char *tagid, char *strval)
